@@ -1,0 +1,40 @@
+import pandas as pd
+from neo4j import GraphDatabase
+
+URI = "bolt://100.55.66.81"
+AUTH = ("neo4j", "secrets-primes-weeks")
+
+driver = GraphDatabase.driver(URI, auth=AUTH)
+driver.verify_connectivity()
+
+def import_train_line(tx, row):
+    # On utilise MERGE pour les gares et CREATE pour la relation TRAJET
+    query = """
+    MERGE (dep:Gare {nom: $origine})
+    MERGE (arr:Gare {nom: $destination})
+    CREATE (dep)-[:TRAJET {
+        train_no: $no,
+        depart: $h_dep,
+        arrivee: $h_arr,
+        dispo: $dispo
+    }]->(arr)
+    """
+    tx.run(query, 
+           origine=row['Origine'], 
+           destination=row['Destination'],
+           no=row['TRAIN_NO'],
+           h_dep=row['Heure_depart'],
+           h_arr=row['Heure_arrivee'],
+           dispo=row['Disponibilité de places MAX JEUNE et MAX SENIOR'])
+
+# Lecture du CSV et exécution de l'import
+df = pd.read_csv('tgvmax.csv', sep=';') # Utilisation du séparateur point-virgule
+
+with driver.session() as session:
+    
+    for _, row in df.iterrows():
+        session.execute_write(import_train_line, row)
+
+print("Importation terminée")
+
+print("Hello !")
