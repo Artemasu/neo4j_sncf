@@ -48,6 +48,8 @@ def create_actor(tx, nom_acteur):
 with driver.session() as session:
     session.execute_write(create_actor, "Jean")
 
+print("coucou")
+
 # Créer une relation ACTED_IN entre un acteur et un film
 def create_relation_acted_in(tx, nom_acteur, nom_film):
     query = """MATCH (p:Person {name: $var1})
