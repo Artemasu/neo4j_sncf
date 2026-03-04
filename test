@@ -1,0 +1,62 @@
+from neo4j import GraphDatabase
+
+URI = "bolt://54.172.4.216"
+AUTH = ("neo4j", "blurs-trees-pages")
+
+with GraphDatabase.driver(URI, auth=AUTH) as driver :
+    driver.verify_connectivity()
+
+driver = GraphDatabase.driver(URI, auth=AUTH)
+driver.verify_connectivity()
+
+actors, summary, _ = driver.execute_query(
+    "MATCH (p:Person)-[:ACTED_IN]-() RETURN DISTINCT p.name AS name",
+    database_="neo4j",
+)
+
+for a in actors:
+    print(a['name'])
+
+
+def get_actors(tx):
+    query = """MATCH (p:Person)-[:ACTED_IN]-()
+               RETURN DISTINCT p.name AS name"""
+    result = tx.run(query)
+    return result.data()
+
+with driver.session() as session:
+    actors = session.execute_read(get_actors)
+    for a in actors:
+        print(a['name'])
+
+def get_movies(tx, nom_acteur):
+    query = """MATCH (p:Person {name: $variable_cypher})-[:ACTED_IN]-(m:Movie)
+               RETURN DISTINCT m.title AS title"""
+    result = tx.run(query, variable_cypher=nom_acteur)
+    return result.data()
+
+with driver.session() as session:
+    movies = session.execute_read(get_movies, "Keanu Reeves")
+    for m in movies:
+        print(m['title'])
+
+
+# Créer un nouveau nœud Person
+def create_actor(tx, nom_acteur):
+    tx.run("MERGE (:Person {name: $variable_cypher})", variable_cypher=nom_acteur)
+
+with driver.session() as session:
+    session.execute_write(create_actor, "Jean")
+
+# Créer une relation ACTED_IN entre un acteur et un film
+def create_relation_acted_in(tx, nom_acteur, nom_film):
+    query = """MATCH (p:Person {name: $var1})
+               MATCH (m:Movie {title: $var2})
+               CREATE (p)-[:ACTED_IN]->(m)"""
+    tx.run(query, var1=nom_acteur, var2=nom_film)
+
+with driver.session() as session:
+    session.execute_write(create_relation_acted_in, "Jean Dujardin", "The Matrix")
+
+# Toujours fermer le driver à la fin du script
+driver.close()
