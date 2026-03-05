@@ -1,21 +1,30 @@
 import pandas as pd
 
-def preparer_donnees(chemin_csv): # Sépare le CSV en deux structures (noeuds et relations).
+def preparer_donnees(chemin_source):
+    # 1. Lecture du fichier source
+    print("Lecture du fichier source...")
+    df = pd.read_csv(chemin_source, sep=';')
 
-    df_complet = pd.read_csv(chemin_csv, sep=';')
-    df = df_complet.head(10000)
-
+    # 2. Création du fichier NOEUDS (Gares)
+    # On prend toutes les origines et destinations pour avoir une liste unique de gares
     dep = df[['Origine', 'Origine IATA']].rename(columns={'Origine': 'ville', 'Origine IATA': 'iata'})
     arr = df[['Destination', 'Destination IATA']].rename(columns={'Destination': 'ville', 'Destination IATA': 'iata'})
     
-    # Dédoublonnage
     df_nodes = pd.concat([dep, arr]).drop_duplicates(subset=['iata']).dropna()
-
-    # Liste des trajets (Relations)
-    df_trajets = df[['Origine IATA', 'Destination IATA', 'TRAIN_NO', 'Heure_depart', 'Heure_arrivee', 'DATE']]
     
-    return df_nodes, df_trajets
+    # Sauvegarde des noeuds
+    df_nodes.to_csv('nodes_gares.csv', index=False, sep=',', encoding='utf-8')
+    print(f"Fichier 'nodes_gares.csv' créé ({len(df_nodes)} lignes).")
+
+    # 3. Création du fichier RELATIONS (Trajets)
+    # On sélectionne les colonnes nécessaires et on peut renommer pour plus de clarté
+    df_rels = df[['Origine IATA', 'Destination IATA', 'TRAIN_NO', 'Heure_depart', 'Heure_arrivee', 'DATE']]
+    
+    # Sauvegarde des relations
+    df_rels.to_csv('rels_trajets.csv', index=False, sep=',', encoding='utf-8')
+    print(f"Fichier 'rels_trajets.csv' créé ({len(df_rels)} lignes).")
+
+    return df_nodes, df_rels
 
 if __name__ == "__main__":
-    nodes, rels = preparer_donnees('tgvmax.csv')
-    print(f"Mode TEST activé : {len(nodes)} gares et {len(rels)} trajets extraits.")
+    preparer_donnees('tgvmax.csv')
