@@ -2,36 +2,27 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TGVMax Finder - Recherche Intuitive</title>
+    <title>TGV Trainy - Itinéraires</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>🚄 TGVMax Finder</h1>
-            <p>Sélectionnez vos critères et trouvez votre train</p>
+            <h1>🚄 TGV Trainy</h1>
+            <p>Voyagez librement ! Explorez de nouveaux horizons.</p>
         </header>
 
         <section class="search-section">
             <form method="POST">
                 <div class="form-grid">
-                    <div class="input-group">
-                        <label for="dep">Ville de départ</label>
-                        <input type="text" id="dep" name="dep" placeholder="Ex: Paris" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="arr">Ville d'arrivée</label>
-                        <input type="text" id="arr" name="arr" placeholder="Ex: Niort" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="h_min">Heure minimum</label>
-                        <input type="time" id="h_min" name="h_min" value="08:00" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="date_v">Date du voyage</label>
-                        <input type="date" id="date_v" name="date_v" value="2026-03-05" required>
+                    <div class="input-group"><label>Départ</label><input type="text" name="dep" value="{{params.dep or ''}}" placeholder="Ex: Paris" required></div>
+                    <div class="input-group"><label>Arrivée</label><input type="text" name="arr" value="{{params.arr or ''}}" placeholder="Ex: Niort" required></div>
+                    <div class="input-group"><label>Heure min</label><input type="time" name="h_min" value="{{params.h_min or '08:00'}}" required></div>
+                    <div class="input-group"><label>Date</label><input type="date" name="date_v" value="{{params.date_v or '2026-03-05'}}" required></div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="direct_only" name="direct_only" {% if params.direct_only %}checked{% endif %}>
+                        <label for="direct_only">Afficher uniquement les trajets directs</label>
                     </div>
 
                     <button type="submit" class="btn-search">Rechercher</button>
@@ -42,39 +33,54 @@
         <section class="results-section">
             {% if results %}
                 <div class="results-header">
-                    <h2>{{ results|length }} trajet(s) trouvé(s)</h2>
+                    <h2>{{ results|length }} itinéraire(s) unique(s) trouvé(s)</h2>
                 </div>
                 {% for res in results %}
-                    <div class="train-card">
-                        <div class="train-header">
-                            <span class="train-tag">TGV n°{{ res.train }}</span>
+                <div class="train-card" onclick="toggleDetails('det-{{ loop.index }}')">
+                    <div class="train-header">
+                        <span class="train-tag">{% if res.nb_segments == 1 %}DIRECT{% else %}1 ESCALE{% endif %}</span>
+                        <span class="train-info">
+                            {% if res.nb_segments == 1 %} Train n°{{ res.segments[0].no }} {% else %} Itinéraire combiné {% endif %}
+                        </span>
+                    </div>
+                    <div class="train-route">
+                        <div class="route-block">
+                            <span class="time">{{ res.segments[0].dep }}</span>
+                            <span class="station">{{ res.segments[0].v_dep }}</span>
                         </div>
-                        <div class="train-route">
-                            <div class="route-block">
-                                <span class="time">{{ res.dep }}</span>
-                                <span class="station">{{ res.ville_dep }}</span>
-                            </div>
-                            
-                            <div class="route-connector">
-                                <span class="duration-badge">{{ res.duree }}</span>
-                                <div class="visual-line">
-                                    <span class="arrow">➔</span>
-                                </div>
-                            </div>
-
-                            <div class="route-block text-right">
-                                <span class="time">{{ res.arr }}</span>
-                                <span class="station">{{ res.ville_arr }}</span>
-                            </div>
+                        <div class="route-connector">
+                            <span class="duration-badge">{{ res.total_duree }}</span>
+                            <div class="visual-line"><span class="arrow">➔</span></div>
+                            <small class="click-hint">Cliquez pour le détail</small>
+                        </div>
+                        <div class="route-block text-right">
+                            <span class="time">{{ res.segments[-1].arr }}</span>
+                            <span class="station">{{ res.segments[-1].v_arr }}</span>
                         </div>
                     </div>
+
+                    <div id="det-{{ loop.index }}" class="train-details" style="display:none;">
+                        <div class="details-content">
+                            {% for seg in res.segments %}
+                            <div class="segment-line">
+                                <strong>Voyage {{ loop.index }} :</strong> Train n°{{ seg.no }} | {{ seg.v_dep }} ({{ seg.dep }}) ➜ {{ seg.v_arr }} ({{ seg.arr }})
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
             {% elif results == [] %}
-                <div class="no-results">
-                    <p>Désolé, aucun train trouvé pour ces critères.</p>
-                </div>
+                <div class="no-results"><p>Désolé, aucun trajet trouvé pour ces critères.</p></div>
             {% endif %}
         </section>
     </div>
+
+    <script>
+        function toggleDetails(id) {
+            var el = document.getElementById(id);
+            el.style.display = (el.style.display === "none") ? "block" : "none";
+        }
+    </script>
 </body>
 </html>
