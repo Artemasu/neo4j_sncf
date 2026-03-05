@@ -1,11 +1,11 @@
 from neo4j import GraphDatabase
 from nettoyage import preparer_donnees
 
-URI = "bolt://52.87.245.146"
-AUTH = ("neo4j", "gums-shelf-sewage")
+URI = "bolt://100.55.66.81"
+AUTH = ("neo4j", "secrets-primes-weeks")
 
 def creer_gares_unique(tx, df_nodes):
-    # MERGE sur le code IATA pour garantir l'unicité
+    # MERGE sur le code IATA
     query = "MERGE (g:Gare {code_iata: $iata}) SET g.ville = $nom"
     for _, ligne in df_nodes.iterrows():
         tx.run(query, iata=ligne['iata'], nom=ligne['ville'])
@@ -29,7 +29,6 @@ def creer_trajets(tx, df_rels):
                ha=ligne['Heure_arrivee'], dt=ligne['DATE'])
 
 def recherche_directe(tx, v_dep, v_arr, h_min):
-    # Recherche utilisant les noms de propriétés exacts du schéma
     query = """
     MATCH (d:Gare)-[r:TRAJET]->(a:Gare)
     WHERE d.ville = $v_dep AND a.ville = $v_arr AND r.`heure départ` >= $h_min
@@ -42,23 +41,19 @@ def recherche_directe(tx, v_dep, v_arr, h_min):
 def main():
     driver = GraphDatabase.driver(URI, auth=AUTH)
     
-    # 1. Préparation via le module nettoyage
     df_nodes, df_rels = preparer_donnees('tgvmax.csv')
     
     with driver.session() as session:
-        # 2. Nettoyage de la base Neo4j (supprime tout)
         print("Vidage de la base de données...")
         session.run("MATCH (n) DETACH DELETE n")
         
-        # 3. Importation en deux étapes (Conseil Prof)
         print(f"Importation de {len(df_nodes)} gares...")
         session.execute_write(creer_gares_unique, df_nodes)
         
         print(f"Importation de {len(df_rels)} trajets...")
         session.execute_write(creer_trajets, df_rels)
         
-        # 4. Test de recherche 
-        print("\n--- TEST DE RECHERCHE ---")
+        print("\nTEST DE RECHERCHE")
         print("Note: Respectez les majuscules du fichier CSV (ex: PARIS (intramuros))")
         dep = input("Ville de départ : ")
         arr = input("Ville d'arrivée : ")
