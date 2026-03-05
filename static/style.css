@@ -1,0 +1,187 @@
+/* Variables de couleurs */
+:root {
+    --primary-blue: #1a365d;
+    --secondary-blue: #2b6cb0;
+    --accent-green: #48bb78;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-gray: #f7fafc;
+    --white: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-gray);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 700px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    color: var(--primary-blue);
+    margin-bottom: 5px;
+}
+
+header p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* Formulaire de recherche */
+.search-section {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--secondary-blue);
+}
+
+.input-group input {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: var(--secondary-blue);
+}
+
+.btn-search {
+    grid-column: span 2;
+    background: var(--secondary-blue);
+    color: var(--white);
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 10px;
+}
+
+.btn-search:hover {
+    background: var(--primary-blue);
+}
+
+/* Cartes de résultats */
+.train-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border-left: 6px solid var(--accent-green);
+    transition: transform 0.2s;
+}
+
+.train-card:hover {
+    transform: translateY(-2px);
+}
+
+.train-header {
+    margin-bottom: 15px;
+}
+
+.train-tag {
+    background: #ebf8ff;
+    color: var(--secondary-blue);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.train-route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.route-block {
+    display: flex;
+    flex-direction: column;
+    flex: 2;
+}
+
+.route-block:last-child {
+    text-align: right;
+}
+
+.time {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.station {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin-top: 5px;
+}
+
+/* Connecteur visuel entre départ et arrivée */
+.route-connector {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    padding: 0 15px;
+    color: #cbd5e0;
+}
+
+.arrow {
+    font-size: 1.2rem;
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px;
+    background: #fff5f5;
+    color: #c53030;
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .btn-search {
+        grid-column: span 1;
+    }
+}

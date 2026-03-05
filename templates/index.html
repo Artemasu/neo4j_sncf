@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGVMax Finder - Recherche</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>🚄 TGVMax Finder</h1>
+            <p>Trouvez votre prochain voyage en un clic</p>
+        </header>
+
+        <section class="search-section">
+            <form method="POST">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Départ</label>
+                        <input type="text" name="dep" placeholder="Ex: Paris" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Arrivée</label>
+                        <input type="text" name="arr" placeholder="Ex: Niort" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Heure minimum</label>
+                        <input type="text" name="h_min" placeholder="08:00" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Date du voyage</label>
+                        <input type="text" name="date_v" placeholder="AAAA-MM-JJ" required>
+                    </div>
+                    <button type="submit" class="btn-search">Trouver mon train</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="results-section">
+            {% if results %}
+                <h2>{{ results|length }} trajet(s) trouvé(s)</h2>
+                {% for res in results %}
+                    <div class="train-card">
+                        <div class="train-header">
+                            <span class="train-tag">TGV n°{{ res.train }}</span>
+                        </div>
+                        <div class="train-route">
+                            <div class="route-block">
+                                <span class="time">{{ res.dep }}</span>
+                                <span class="station">{{ res.ville_dep }}</span>
+                            </div>
+                            
+                            <div class="route-connector">
+                                <div class="dot"></div>
+                                <div class="line"></div>
+                                <div class="arrow">➔</div>
+                            </div>
+
+                            <div class="route-block">
+                                <span class="time">{{ res.arr }}</span>
+                                <span class="station">{{ res.ville_arr }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif results == [] %}
+                <div class="no-results">
+                    <p>Aucun train trouvé pour cette date. Essayez une autre ville ou un autre horaire.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+</body>
+</html>
