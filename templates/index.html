@@ -2,30 +2,42 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>TGV Trainy - Itinéraires</title>
+    <title>SNCF - Itinéraires Graphes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
         <header>
             <h1>🚄 TGV Trainy</h1>
-            <p>Voyagez librement ! Explorez de nouveaux horizons.</p>
+            <p>Voyagez librement ! Explorez de nouveaux horizons</p>
         </header>
 
         <section class="search-section">
             <form method="POST">
                 <div class="form-grid">
-                    <div class="input-group"><label>Départ</label><input type="text" name="dep" value="{{params.dep or ''}}" placeholder="Ex: Paris" required></div>
-                    <div class="input-group"><label>Arrivée</label><input type="text" name="arr" value="{{params.arr or ''}}" placeholder="Ex: Niort" required></div>
-                    <div class="input-group"><label>Heure min</label><input type="time" name="h_min" value="{{params.h_min or '08:00'}}" required></div>
-                    <div class="input-group"><label>Date</label><input type="date" name="date_v" value="{{params.date_v or '2026-03-05'}}" required></div>
+                    <div class="input-group">
+                        <label>Ville de départ</label>
+                        <input type="text" name="dep" value="{{params.dep or ''}}" placeholder="Ex: Paris" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Ville d'arrivée</label>
+                        <input type="text" name="arr" value="{{params.arr or ''}}" placeholder="Ex: Niort" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Heure minimum</label>
+                        <input type="time" name="h_min" value="{{params.h_min or '08:00'}}" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Date du voyage</label>
+                        <input type="date" name="date_v" value="{{params.date_v or '2026-03-05'}}" required>
+                    </div>
                     
                     <div class="checkbox-group">
                         <input type="checkbox" id="direct_only" name="direct_only" {% if params.direct_only %}checked{% endif %}>
                         <label for="direct_only">Afficher uniquement les trajets directs</label>
                     </div>
 
-                    <button type="submit" class="btn-search">Rechercher</button>
+                    <button type="submit" class="btn-search">Lancer la recherche</button>
                 </div>
             </form>
         </section>
@@ -33,37 +45,46 @@
         <section class="results-section">
             {% if results %}
                 <div class="results-header">
-                    <h2>{{ results|length }} itinéraire(s) unique(s) trouvé(s)</h2>
+                    <h2>{{ results|length }} itinéraire(s) trouvé(s)</h2>
                 </div>
                 {% for res in results %}
                 <div class="train-card" onclick="toggleDetails('det-{{ loop.index }}')">
                     <div class="train-header">
-                        <span class="train-tag">{% if res.nb_segments == 1 %}DIRECT{% else %}1 ESCALE{% endif %}</span>
+                        <span class="train-tag">
+                            {% if res.nb_escales == 1 %}DIRECT{% else %}{{ res.nb_escales - 1 }} ESCALE(S){% endif %}
+                        </span>
                         <span class="train-info">
-                            {% if res.nb_segments == 1 %} Train n°{{ res.segments[0].no }} {% else %} Itinéraire combiné {% endif %}
+                            {% if res.nb_escales == 1 %} 
+                                Train n°{{ res.liste_trajets[0].no }} 
+                            {% else %} 
+                                Trajets Combinés
+                            {% endif %}
                         </span>
                     </div>
+
                     <div class="train-route">
                         <div class="route-block">
-                            <span class="time">{{ res.segments[0].dep }}</span>
-                            <span class="station">{{ res.segments[0].v_dep }}</span>
+                            <span class="time">{{ res.liste_trajets[0].dep }}</span>
+                            <span class="station">{{ res.liste_trajets[0].v_dep }}</span>
                         </div>
+
                         <div class="route-connector">
-                            <span class="duration-badge">{{ res.total_duree }}</span>
+                            <span class="duration-badge">{{ res.duree_totale }}</span>
                             <div class="visual-line"><span class="arrow">➔</span></div>
-                            <small class="click-hint">Cliquez pour le détail</small>
+                            <small class="click-hint">Cliquez pour voir le détail</small>
                         </div>
+
                         <div class="route-block text-right">
-                            <span class="time">{{ res.segments[-1].arr }}</span>
-                            <span class="station">{{ res.segments[-1].v_arr }}</span>
+                            <span class="time">{{ res.liste_trajets[-1].arr }}</span>
+                            <span class="station">{{ res.liste_trajets[-1].v_arr }}</span>
                         </div>
                     </div>
 
                     <div id="det-{{ loop.index }}" class="train-details" style="display:none;">
                         <div class="details-content">
-                            {% for seg in res.segments %}
-                            <div class="segment-line">
-                                <strong>Voyage {{ loop.index }} :</strong> Train n°{{ seg.no }} | {{ seg.v_dep }} ({{ seg.dep }}) ➜ {{ seg.v_arr }} ({{ seg.arr }})
+                            {% for trajet in res.liste_trajets %}
+                            <div class="trajet-line">
+                                <strong>Trajet {{ loop.index }} :</strong> Train n°{{ trajet.no }} | {{ trajet.v_dep }} ({{ trajet.dep }}) ➜ {{ trajet.v_arr }} ({{ trajet.arr }})
                             </div>
                             {% endfor %}
                         </div>
@@ -71,7 +92,7 @@
                 </div>
                 {% endfor %}
             {% elif results == [] %}
-                <div class="no-results"><p>Désolé, aucun trajet trouvé pour ces critères.</p></div>
+                <div class="no-results"><p>Désolé, aucun itinéraire trouvé pour ces critères.</p></div>
             {% endif %}
         </section>
     </div>
