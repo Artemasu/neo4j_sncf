@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from neo4j import GraphDatabase
 from nettoyage import preparer_donnees 
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -8,7 +9,18 @@ URI = "bolt://100.55.66.81"
 AUTH = ("neo4j", "secrets-primes-weeks")
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
-# --- TES CODES QUE TU GARDES ---
+def calculer_duree(h_dep, h_arr):
+    fmt = '%H:%M'
+    try:
+        tdelta = datetime.strptime(h_arr, fmt) - datetime.strptime(h_dep, fmt)
+        seconds = tdelta.total_seconds()
+        if seconds < 0: seconds += 86400  # Gestion des trajets arrivant le lendemain
+        heures = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        return f"{heures}h{minutes:02d}"
+    except:
+        return "N/A"
+
 def configurer_base(session):
     session.run("CREATE CONSTRAINT gare_iata IF NOT EXISTS FOR (g:Gare) REQUIRE g.code_iata IS UNIQUE")
 
@@ -59,12 +71,14 @@ def index():
         date_v = request.form.get("date_v")
         
         with driver.session() as session:
-            results = session.execute_read(recherche_par_date, v_dep, v_arr, h_min, date_v)
+            raw_results = session.execute_read(recherche_par_date, v_dep, v_arr, h_min, date_v)
+            for res in raw_results:
+                res['duree'] = calculer_duree(res['dep'], res['arr'])
+            results = raw_results
             
     return render_template("index.html", results=results)
 
 if __name__ == "__main__":
-    # Vérification initiale de la base au lancement
     with driver.session() as session:
         nb_gares = session.run("MATCH (g:Gare) RETURN count(g) AS nb").single()["nb"]
         if nb_gares == 0:

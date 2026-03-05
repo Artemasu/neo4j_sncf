@@ -3,43 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TGVMax Finder - Recherche</title>
+    <title>TGVMax Finder - Recherche Intuitive</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="app-container">
         <header>
             <h1>🚄 TGVMax Finder</h1>
-            <p>Trouvez votre prochain voyage en un clic</p>
+            <p>Sélectionnez vos critères et trouvez votre train</p>
         </header>
 
         <section class="search-section">
             <form method="POST">
                 <div class="form-grid">
                     <div class="input-group">
-                        <label>Départ</label>
-                        <input type="text" name="dep" placeholder="Ex: Paris" required>
+                        <label for="dep">Ville de départ</label>
+                        <input type="text" id="dep" name="dep" placeholder="Ex: Paris" required>
                     </div>
                     <div class="input-group">
-                        <label>Arrivée</label>
-                        <input type="text" name="arr" placeholder="Ex: Niort" required>
+                        <label for="arr">Ville d'arrivée</label>
+                        <input type="text" id="arr" name="arr" placeholder="Ex: Niort" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="h_min">Heure minimum</label>
+                        <input type="time" id="h_min" name="h_min" value="08:00" required>
                     </div>
                     <div class="input-group">
-                        <label>Heure minimum</label>
-                        <input type="text" name="h_min" placeholder="08:00" required>
+                        <label for="date_v">Date du voyage</label>
+                        <input type="date" id="date_v" name="date_v" value="2026-03-05" required>
                     </div>
-                    <div class="input-group">
-                        <label>Date du voyage</label>
-                        <input type="text" name="date_v" placeholder="AAAA-MM-JJ" required>
-                    </div>
-                    <button type="submit" class="btn-search">Trouver mon train</button>
+
+                    <button type="submit" class="btn-search">Rechercher</button>
                 </div>
             </form>
         </section>
 
         <section class="results-section">
             {% if results %}
-                <h2>{{ results|length }} trajet(s) trouvé(s)</h2>
+                <div class="results-header">
+                    <h2>{{ results|length }} trajet(s) trouvé(s)</h2>
+                </div>
                 {% for res in results %}
                     <div class="train-card">
                         <div class="train-header">
@@ -52,12 +56,13 @@
                             </div>
                             
                             <div class="route-connector">
-                                <div class="dot"></div>
-                                <div class="line"></div>
-                                <div class="arrow">➔</div>
+                                <span class="duration-badge">{{ res.duree }}</span>
+                                <div class="visual-line">
+                                    <span class="arrow">➔</span>
+                                </div>
                             </div>
 
-                            <div class="route-block">
+                            <div class="route-block text-right">
                                 <span class="time">{{ res.arr }}</span>
                                 <span class="station">{{ res.ville_arr }}</span>
                             </div>
@@ -66,7 +71,7 @@
                 {% endfor %}
             {% elif results == [] %}
                 <div class="no-results">
-                    <p>Aucun train trouvé pour cette date. Essayez une autre ville ou un autre horaire.</p>
+                    <p>Désolé, aucun train trouvé pour ces critères.</p>
                 </div>
             {% endif %}
         </section>
